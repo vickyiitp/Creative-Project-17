@@ -1,0 +1,5 @@
+{
+  "name": "Shadow Operative",
+  "description": "A top-down minimalist stealth game. Infiltrate secure zones, avoid guard vision cones using raycasting technology, and utilize your battery-powered darkness cloak to slip by undetected.",
+  "requestFramePermissions": []
+}

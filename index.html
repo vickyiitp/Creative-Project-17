@@ -1,0 +1,516 @@
+
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Shadow Operative - A minimalist top-down stealth game by Vicky Kumar. Infiltrate secure zones, use darkness mechanics, and avoid detection in this high-tech browser game.">
+    <meta name="keywords" content="Shadow Operative, Stealth Game, Browser Game, Vicky Kumar, vickyiitp, AI developer, IIT Patna, 100 games, web apps, devil labs, HTML5 Game, Raycasting">
+    <meta name="author" content="Vicky Kumar">
+    <meta name="theme-color" content="#020617">
+    <link rel="canonical" href="https://vickyiitp.tech/shadow-operative" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://vickyiitp.tech/shadow-operative">
+    <meta property="og:title" content="Shadow Operative | Stealth Browser Game by Vickyiitp">
+    <meta property="og:description" content="Master the art of stealth. Infiltrate high-security facilities in this minimalist browser game featuring raycasting vision cones and active lighting mechanics.">
+    <meta property="og:image" content="https://vickyiitp.tech/assets/shadow-operative-card.jpg">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://vickyiitp.tech/shadow-operative">
+    <meta property="twitter:title" content="Shadow Operative | Stealth Browser Game">
+    <meta property="twitter:description" content="Play Shadow Operative now. A stealth game by Vicky Kumar.">
+    <meta property="twitter:creator" content="@vickyiitp">
+    <meta property="twitter:image" content="https://vickyiitp.tech/assets/shadow-operative-card.jpg">
+
+    <title>Shadow Operative | Stealth Game by Vicky Kumar</title>
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "VideoGame",
+      "name": "Shadow Operative",
+      "genre": "Stealth",
+      "playMode": "SinglePlayer",
+      "applicationCategory": "Game",
+      "operatingSystem": "Web Browser",
+      "url": "https://vickyiitp.tech/shadow-operative",
+      "author": {
+        "@type": "Person",
+        "name": "Vicky Kumar",
+        "url": "https://vickyiitp.tech",
+        "sameAs": [
+            "https://youtube.com/@vickyiitp",
+            "https://linkedin.com/in/vickyiitp",
+            "https://x.com/vickyiitp",
+            "https://github.com/vickyiitp",
+            "https://instagram.com/vickyiitp"
+        ]
+      },
+      "description": "A top-down minimalist stealth game where players infiltrate secure zones avoiding guard vision cones.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --color-neon-cyan: #00f3ff;
+            --color-neon-red: #ff003c;
+        }
+        body {
+            background-color: #020617;
+            background: radial-gradient(circle at top center, #1e1b4b 0%, #020617 80%);
+            color: white;
+            font-family: 'Rajdhani', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        .font-display { font-family: 'Orbitron', sans-serif; }
+        
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 243, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .btn-primary {
+            position: relative;
+            background: rgba(0, 243, 255, 0.1);
+            border: 1px solid var(--color-neon-cyan);
+            color: var(--color-neon-cyan);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+            z-index: 10;
+        }
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 243, 255, 0.4), transparent);
+            transition: 0.5s;
+        }
+        .btn-primary:hover {
+            background: var(--color-neon-cyan);
+            color: black;
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.6);
+            transform: translateY(-2px);
+        }
+        .btn-primary:hover::before { left: 100%; }
+        
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -2;
+            opacity: 0.6;
+        }
+
+        /* Floating Background Objects */
+        .floating-obj {
+            position: absolute;
+            opacity: 0.2;
+            z-index: -1;
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.1);
+            pointer-events: none;
+        }
+        .obj-cube {
+            width: 100px;
+            height: 100px;
+            top: 20%;
+            left: 10%;
+            animation: float-rotate 20s infinite linear;
+            background: linear-gradient(45deg, transparent, rgba(0, 243, 255, 0.05));
+        }
+        .obj-hex {
+            width: 150px;
+            height: 150px;
+            bottom: 30%;
+            right: 15%;
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            animation: float-rotate 30s infinite reverse linear;
+            background: linear-gradient(180deg, transparent, rgba(147, 51, 234, 0.05));
+            border: none; /* clip-path handles shape */
+            background-color: rgba(147, 51, 234, 0.1);
+        }
+        .obj-line {
+            width: 200px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00f3ff, transparent);
+            top: 60%;
+            left: 40%;
+            animation: float-side 10s infinite ease-in-out;
+        }
+
+        @keyframes float-rotate {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(20px, -40px) rotate(180deg); }
+            100% { transform: translate(0, 0) rotate(360deg); }
+        }
+        @keyframes float-side {
+            0% { transform: translateX(0); opacity: 0; }
+            50% { opacity: 0.5; }
+            100% { transform: translateX(100px); opacity: 0; }
+        }
+
+        .card-hover:hover {
+            border-color: var(--color-neon-cyan);
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 0 40px rgba(0, 243, 255, 0.2);
+            background: rgba(2, 6, 23, 0.8);
+        }
+
+        .glitch-text { position: relative; color: white; }
+        .glitch-text::before, .glitch-text::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%; opacity: 0.8;
+        }
+        .glitch-text::before { color: #0ff; z-index: -1; animation: glitch-effect 3s infinite; }
+        .glitch-text::after { color: #f0f; z-index: -2; animation: glitch-effect 2s infinite reverse; }
+        @keyframes glitch-effect {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/"
+  }
+}
+</script>
+</head>
+<body class="antialiased selection:bg-cyan-500 selection:text-black flex flex-col min-h-screen">
+    
+    <canvas id="bg-canvas"></canvas>
+    
+    <!-- Floating Background Decor -->
+    <div class="floating-obj obj-cube"></div>
+    <div class="floating-obj obj-hex"></div>
+    <div class="floating-obj obj-line"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 top-0 left-0 border-b border-white/5 glass-panel">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
+            <a href="index.html" class="font-display font-bold text-xl sm:text-2xl tracking-widest text-white flex items-center gap-2 hover:opacity-80 transition-opacity group">
+                <span class="text-cyan-400 group-hover:animate-pulse">DEVIL</span>LABS
+            </a>
+            
+            <div class="hidden md:flex items-center gap-8">
+                <a href="#features" class="text-sm font-bold tracking-wider hover:text-cyan-400 transition-colors uppercase relative group">
+                    Features
+                    <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-cyan-400 transition-all group-hover:w-full"></span>
+                </a>
+                <a href="#story" class="text-sm font-bold tracking-wider hover:text-cyan-400 transition-colors uppercase relative group">
+                    Mission
+                    <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-cyan-400 transition-all group-hover:w-full"></span>
+                </a>
+                <a href="game.html" class="btn-primary px-6 py-2 font-bold tracking-wider text-xs uppercase">
+                    Launch Protocol
+                </a>
+            </div>
+
+            <button id="menu-btn" class="md:hidden text-white hover:text-cyan-400 focus:outline-none p-2" aria-label="Toggle Menu">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                </svg>
+            </button>
+        </div>
+
+        <div id="mobile-menu" class="absolute top-20 left-0 w-full glass-panel border-b border-white/10 hidden md:hidden flex flex-col p-6 space-y-6 shadow-2xl backdrop-blur-xl transition-all duration-300 transform opacity-0 -translate-y-4 pointer-events-none">
+            <a href="#features" class="block text-center py-2 text-lg font-bold tracking-wider hover:text-cyan-400 transition-colors uppercase mobile-link">Features</a>
+            <a href="#story" class="block text-center py-2 text-lg font-bold tracking-wider hover:text-cyan-400 transition-colors uppercase mobile-link">Mission</a>
+            <a href="game.html" class="block w-full text-center btn-primary py-4 font-bold tracking-wider text-sm uppercase">
+                Launch Protocol
+            </a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative min-h-screen flex items-center justify-center pt-24 pb-12 overflow-hidden">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 text-center z-10 w-full">
+            <div class="inline-block mb-4 px-4 py-1.5 border border-cyan-500/30 rounded-full bg-cyan-900/10 text-cyan-400 text-xs sm:text-sm font-bold tracking-[0.2em] animate-pulse">
+                SYSTEM ACCESS GRANTED
+            </div>
+            <h1 class="font-display text-4xl sm:text-6xl md:text-8xl font-black mb-6 leading-tight break-words glitch-text" data-text="BECOME THE INVISIBLE">
+                BECOME THE <br class="hidden sm:block"/><span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-600">INVISIBLE</span>
+            </h1>
+            <p class="text-gray-400 text-base sm:text-xl max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed px-2 backdrop-blur-sm bg-black/20 rounded-xl p-4 border border-white/5">
+                Infiltrate high-security facilities. Master the art of stealth using light, shadow, and tactical gadgets. 
+                They have the numbers. You have the darkness.
+            </p>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
+                <a href="game.html" class="btn-primary w-full sm:w-auto px-8 py-4 font-bold text-lg tracking-wider uppercase inline-flex items-center justify-center gap-2 group">
+                    <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Play Now
+                </a>
+            </div>
+            
+            <div class="mt-12 sm:mt-16 flex flex-wrap justify-center gap-4 sm:gap-8 opacity-80 bg-black/30 inline-block p-4 rounded-full border border-white/5 backdrop-blur-sm">
+                <div class="flex items-center gap-2 text-xs sm:text-sm font-mono text-gray-400">
+                    <span class="w-2 h-2 bg-green-500 rounded-full animate-ping"></span>
+                    Servers Online
+                </div>
+                <div class="flex items-center gap-2 text-xs sm:text-sm font-mono text-gray-400">
+                    <span class="w-2 h-2 bg-cyan-500 rounded-full"></span>
+                    v1.0.4 Live
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features / Mechanics -->
+    <section id="features" class="py-16 sm:py-24 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <div class="text-center mb-16">
+                <h2 class="font-display text-2xl sm:text-4xl font-bold mb-4 tracking-widest text-white">TACTICAL <span class="text-cyan-400">SYSTEMS</span></h2>
+                <div class="h-0.5 w-20 bg-gradient-to-r from-transparent via-cyan-500 to-transparent mx-auto"></div>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-6 sm:gap-8">
+                <!-- Card 1 -->
+                <div class="glass-panel p-6 sm:p-8 rounded-xl transition-all duration-300 card-hover group cursor-default relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 bg-cyan-900/30 rounded-lg flex items-center justify-center mb-6 group-hover:bg-cyan-500/20 transition-colors border border-cyan-500/20 relative z-10">
+                        <svg class="w-6 h-6 sm:w-8 sm:h-8 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 5 8.268 7.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </div>
+                    <h3 class="font-display text-xl sm:text-2xl font-bold mb-4 group-hover:text-cyan-400 transition-colors relative z-10 text-white">Line of Sight</h3>
+                    <p class="text-gray-400 leading-relaxed text-sm relative z-10">
+                        Advanced raycasting algorithms simulate real-time guard vision. Walls cast shadows; use them to break the line of sight and evade detection.
+                    </p>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="glass-panel p-6 sm:p-8 rounded-xl transition-all duration-300 card-hover group cursor-default relative overflow-hidden">
+                     <div class="absolute inset-0 bg-gradient-to-br from-red-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 bg-red-900/30 rounded-lg flex items-center justify-center mb-6 group-hover:bg-red-500/20 transition-colors border border-red-500/20 relative z-10">
+                         <svg class="w-6 h-6 sm:w-8 sm:h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
+                    <h3 class="font-display text-xl sm:text-2xl font-bold mb-4 group-hover:text-red-400 transition-colors relative z-10 text-white">Active Cloak</h3>
+                    <p class="text-gray-400 leading-relaxed text-sm relative z-10">
+                        Engage your darkness cloak to reduce visibility. But be warned: battery life is finite. Strategic resource management is key to survival.
+                    </p>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="glass-panel p-6 sm:p-8 rounded-xl transition-all duration-300 card-hover group cursor-default relative overflow-hidden">
+                     <div class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 bg-purple-900/30 rounded-lg flex items-center justify-center mb-6 group-hover:bg-purple-500/20 transition-colors border border-purple-500/20 relative z-10">
+                        <svg class="w-6 h-6 sm:w-8 sm:h-8 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                    </div>
+                    <h3 class="font-display text-xl sm:text-2xl font-bold mb-4 group-hover:text-purple-400 transition-colors relative z-10 text-white">Secure Extract</h3>
+                    <p class="text-gray-400 leading-relaxed text-sm relative z-10">
+                        Navigate complex facility maps to reach the extraction zone. Every level introduces tighter security and more complex patrol patterns.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mission Brief -->
+    <section id="story" class="py-16 sm:py-24 relative overflow-hidden">
+         <div class="absolute inset-0 bg-cyan-900/5 z-0"></div>
+         <div class="max-w-4xl mx-auto px-4 sm:px-6 relative z-10 text-center">
+             <h2 class="font-display text-2xl sm:text-4xl font-bold mb-8 text-white">THE <span class="text-cyan-400">MISSION</span></h2>
+             <p class="text-lg sm:text-xl text-gray-300 leading-relaxed mb-8">
+                 You are an operative for <span class="text-cyan-400 font-bold">Devil Labs</span>. Your objective: infiltrate the corporate stronghold, steal the prototype, and vanish. The facility is guarded by automated sentries with thermal vision. Speed is not enough. You must be a ghost.
+             </p>
+             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-12">
+                 <div class="p-4 border border-white/10 rounded-lg bg-black/40 backdrop-blur-md">
+                     <div class="text-2xl sm:text-3xl font-bold text-white mb-1">03</div>
+                     <div class="text-xs uppercase tracking-widest text-gray-500">Sectors</div>
+                 </div>
+                 <div class="p-4 border border-white/10 rounded-lg bg-black/40 backdrop-blur-md">
+                     <div class="text-2xl sm:text-3xl font-bold text-white mb-1">100%</div>
+                     <div class="text-xs uppercase tracking-widest text-gray-500">Stealth</div>
+                 </div>
+                 <div class="p-4 border border-white/10 rounded-lg bg-black/40 backdrop-blur-md">
+                     <div class="text-2xl sm:text-3xl font-bold text-white mb-1">AI</div>
+                     <div class="text-xs uppercase tracking-widest text-gray-500">Hostiles</div>
+                 </div>
+                 <div class="p-4 border border-white/10 rounded-lg bg-black/40 backdrop-blur-md">
+                     <div class="text-2xl sm:text-3xl font-bold text-white mb-1">∞</div>
+                     <div class="text-xs uppercase tracking-widest text-gray-500">Attempts</div>
+                 </div>
+             </div>
+         </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-black/80 border-t border-white/10 pt-16 pb-8 backdrop-blur-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <div class="flex flex-col items-center justify-center">
+                <a href="#" class="font-display font-bold text-2xl tracking-widest text-white mb-8">
+                    DEVIL<span class="text-cyan-600">LABS</span>
+                </a>
+                
+                <div class="flex flex-wrap justify-center gap-6 sm:gap-8 mb-8">
+                    <a href="https://youtube.com/@vickyiitp" target="_blank" class="text-gray-400 hover:text-cyan-400 transition-colors"><span class="sr-only">YouTube</span><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+                    <a href="https://linkedin.com/in/vickyiitp" target="_blank" class="text-gray-400 hover:text-cyan-400 transition-colors"><span class="sr-only">LinkedIn</span><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg></a>
+                    <a href="https://x.com/vickyiitp" target="_blank" class="text-gray-400 hover:text-cyan-400 transition-colors"><span class="sr-only">X (Twitter)</span><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+                    <a href="https://github.com/vickyiitp" target="_blank" class="text-gray-400 hover:text-cyan-400 transition-colors"><span class="sr-only">GitHub</span><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"/></svg></a>
+                </div>
+                
+                <div class="text-center text-sm text-gray-500 font-mono space-y-2">
+                    <p>&copy; 2025 Vickyiitp. All rights reserved.</p>
+                    <div class="space-x-4">
+                        <a href="terms.html" class="hover:text-white transition-colors">Terms</a>
+                        <a href="privacy.html" class="hover:text-white transition-colors">Privacy</a>
+                        <a href="mailto:themvaplatform@gmail.com" class="hover:text-white transition-colors">Contact</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </nav>
+    
+    <!-- Mobile Menu Script -->
+    <script>
+        const btn = document.getElementById('menu-btn');
+        const menu = document.getElementById('mobile-menu');
+        let isOpen = false;
+
+        btn.addEventListener('click', () => {
+            isOpen = !isOpen;
+            if(isOpen) {
+                menu.classList.remove('opacity-0', '-translate-y-4', 'pointer-events-none');
+                menu.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+            } else {
+                menu.classList.add('opacity-0', '-translate-y-4', 'pointer-events-none');
+                menu.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+            }
+        });
+        
+        // Close menu on link click
+        document.querySelectorAll('.mobile-link').forEach(link => {
+            link.addEventListener('click', () => {
+                isOpen = false;
+                menu.classList.add('opacity-0', '-translate-y-4', 'pointer-events-none');
+                menu.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+            });
+        });
+    </script>
+    
+    <!-- Complex Background Animation Script -->
+    <script>
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height;
+        let time = 0;
+        
+        // Particles for "Digital Rain"
+        const particles = [];
+        const PARTICLE_COUNT = 50;
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            
+            // Re-init particles
+            particles.length = 0;
+            for(let i=0; i<PARTICLE_COUNT; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    speed: 2 + Math.random() * 3,
+                    len: 5 + Math.random() * 15,
+                    opacity: 0.1 + Math.random() * 0.4
+                });
+            }
+        }
+        window.addEventListener('resize', resize);
+        resize();
+        
+        function draw() {
+            // Semi-clear for trails (optional, but clean looks better here)
+            ctx.clearRect(0, 0, width, height);
+            
+            time += 0.01;
+            
+            // 1. Perspective Grid (Floor)
+            ctx.save();
+            ctx.translate(width/2, height/2 + 100);
+            
+            const FOV = 300;
+            const horizon = -50;
+            
+            ctx.strokeStyle = 'rgba(0, 243, 255, 0.15)';
+            ctx.lineWidth = 1;
+            
+            // Moving vertical lines
+            for(let i = -1000; i <= 1000; i+= 100) {
+                ctx.beginPath();
+                // simple perspective transform
+                const x1 = i;
+                const y1 = 0;
+                const x2 = i * 4;
+                const y2 = 1000;
+                
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+            }
+            
+            // Moving horizontal lines (The scroll effect)
+            const offset = (time * 100) % 200;
+            for(let z = 0; z < 1000; z+= 100) {
+                const actualZ = z - offset;
+                if(actualZ < 0) continue;
+                
+                const y = actualZ;
+                ctx.beginPath();
+                ctx.moveTo(-2000, y);
+                ctx.lineTo(2000, y);
+                ctx.stroke();
+            }
+            ctx.restore();
+            
+            // 2. Digital Rain Particles
+            ctx.fillStyle = '#00f3ff';
+            particles.forEach(p => {
+                p.y += p.speed;
+                if(p.y > height) p.y = -50;
+                
+                ctx.globalAlpha = p.opacity;
+                ctx.fillRect(p.x, p.y, 1, p.len);
+            });
+            ctx.globalAlpha = 1.0;
+            
+            requestAnimationFrame(draw);
+        }
+        
+        draw();
+    </script>
+</body>
+</html>
